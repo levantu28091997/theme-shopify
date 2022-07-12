@@ -1,0 +1,371 @@
+{%- assign limit = section.settings.grid | times: section.settings.rows -%}
+{% paginate collection.products by limit %}
+<div id="{{ section.id }}" data-section-id="{{ section.id }}" data-section-type="collection-template" data-section-timeout="{{section.settings.slider_speed}}">
+	<header class="collection-header">
+      	{% unless template contains 'style2' %}
+          {% if section.settings.page_style == 'style1' %}
+              <div class="collection-hero">
+                  <div class="collection-hero__image" {% if collection.image %}style="background-image: url({{ collection.image | img_url: 'master' }});"{% endif %}></div>
+                  <div class="collection-hero__title-wrapper"> {% include 'breadcrumb' %}
+                      <h1 class="collection-hero__title page-width">{{ collection.title }}</h1>
+                  </div>
+              </div>
+          {% endif %}
+      	{% endunless %}
+  	</header>
+	
+	<!-- BREADCRUMB --> 
+	{% if section.settings.page_style == 'style2' or template contains 'style2' %}
+	<div class="bredcrumbWrap">
+		<div class="container"> {% include 'breadcrumb' %} </div>
+	</div>
+	{% endif %}
+	<div class="container" id="Collection">
+		<div class="row"> 			 
+          	{% if section.settings.sidebar_position == 'left' %}
+          		{%- assign sidebarPosition = 'right' -%}
+          		{% if template contains 'rightsidebar' %}
+          			{%- assign sidebarPosition = '' -%}
+          		{% endif %}
+          	{% endif %}
+          
+			<!-- Right sidebar -->
+			<div class="main-col col-xs-12 col-sm-12 {% unless section.settings.sidebar_position == 'nosidebar' or template contains 'fullwidth' %} col-sm-9 {% endunless %}{{sidebarPosition}}">
+				
+				<!-- Section header --> 
+				
+				{% if section.settings.page_style == 'style2' or template contains 'style2' %}           
+                  {% if section.settings.display_category_banner %}
+                  {% include 'category-banner' %}
+                  {% endif %}
+				<div class="section-header">
+					<h1 class="page-title">{{ collection.title }}</h1>
+				</div>
+				{% endif %}
+				
+				{% if section.settings.display_product_des %}
+				{% if collection.description != blank %}
+				<div class="rte rte--header"> {{ collection.description }} </div>
+				{% endif %}
+				{% endif %} 
+				
+				<!-- Toolbar -->
+				<button type="button" class="btn btn-filter hidden-sm hidden-md hidden-lg"> Product Filters <i class="fa fa-angle-down" aria-hidden="true"></i> </button>
+				<div class="toolbar"> {% include 'collection-filter' %} </div>
+				{% case section.settings.grid %}     
+				{% when '3' %}
+				{%- assign grid_item_width = 'small--one-half medium-up--one-third widescreen--one-third' -%}
+				{%- assign image_size = '355x550' -%}
+				{% when '4' %}
+				{%- assign grid_item_width = 'small--one-half medium-up--one-third widescreen--one-quarter' -%}
+				{%- assign image_size = '300x' -%}
+				{% when '5' %}
+				{%- assign grid_item_width = 'small--one-half medium-up--one-third widescreen--one-fifth' -%}
+				{%- assign image_size = '300x' -%}
+				{% endcase %}
+				
+				{% unless template contains 'list' %}
+				<div class="grid {% if collection.products_count > 0 %} grid--view-items{% endif %} grid-products"> {% for product in collection.products %}
+					<div class="grid__item {{ grid_item_width }}"> {% include 'product-card-grid', grid_image_width: image_size %} </div>
+					{% else %}         
+					{% if collection.handle == 'all' and collection.all_vendors.size == 0 and collection.all_types.size == 0 %}
+					<div class="grid__item">
+						<div class="grid grid--uniform"> {% for i in (1..limit) %}
+							<div class="grid__item {{ grid_item_width }}">
+								<div class="grid-view-item">
+                                  <a href="#" class="grid-view-item__link">
+									<div class="grid-view-item__image"> {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+										{{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg' }} </div>
+									<div class="h4 grid-view-item__title">{{ 'homepage.onboarding.product_title' | t }}</div>
+									<div class="grid-view-item__meta"> <span class="product-price__price">$19.99</span> </div>
+								  </a>
+                              	</div>
+							</div>
+							{% endfor %} </div>
+					</div>
+					{% else %}
+					{%- assign is_empty_collection = true -%}
+					{% endif %}
+					{% endfor %} </div>
+				{% endunless %}
+				
+				{% if template contains 'list' %}
+                  <div class="list-view-items grid-products"> {% for product in collection.products %}
+
+                      {% assign box_animation_time = forloop.index | minus:1 %}
+                      {% assign delay_time = 100 | times : box_animation_time %} <a href="{{ product.url | within: collection }}" class="list-view-item wow fadeInUp" data-wow-delay="{{delay_time}}ms"> {% include 'product-card-list', product: product %} </a> {% else %}
+
+                      {% comment %}
+                      Add default products to help with onboarding for collections/all only.
+
+                      The onboarding styles and products are only loaded if the
+                      store has no products.
+                      {% endcomment %}
+                      {% if collection.handle == 'all' and collection.all_vendors.size == 0 and collection.all_types.size == 0%}
+                      {% for i in (1..4) %} <a href="#" class="list-view-item">
+                      <div class="list-view-item__image-column">
+                          <div class="list-view-item__image-wrapper">
+                              <div class="list-view-item__image"> {%- assign placeholder = 'placeholder-product-' | append: i -%}
+                                  {% include placeholder %} </div>
+                          </div>
+                      </div>
+                      <div class="list-view-item__title-column">
+                          <div class="list-view-item__title">{{ 'homepage.onboarding.product_title' | t }}</div>
+                      </div>
+                      <div class="list-view-item__price-column"> <span class="product-price__price">$19.99</span> </div>
+                      </a> {% endfor %}
+                      {% else %}
+                      {%- assign is_empty_collection = true -%}
+                      {% endif %}
+                      {% endfor %} 
+                </div>
+				{% endif %}
+				
+				{% if is_empty_collection %}
+				<div class="grid__item small--text-center">
+					<p class="text-center">{{ 'collections.general.no_matches' | t }}</p>
+				</div>
+				{% endif %}
+				
+				{% if paginate.pages > 1 %}
+				<hr/>
+				{% include 'pagination' %}
+				{% endif %} </div>
+          
+             <!-- Left sidebar -->
+            {% unless section.settings.sidebar_position == 'nosidebar' or template contains 'fullwidth' %}
+            <div class="col-sm-3 sidebar filterBar"> 
+              {% include 'collection-sidebar' %}
+            </div>
+            {% endunless %}
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+  var collFilters_obj = jQuery('.sidebar_tags input:checkbox'); 
+  function selectColor(v){ 
+  if(document.getElementById(v).checked == true){ 
+  document.getElementById(v).checked = false;
+  }else{
+  document.getElementById(v).checked = true; 
+  }
+ 
+     var newTags = [];
+   
+   collFilters_obj.each(function() {
+      if (jQuery(this).val() && jQuery(this).is(":checked") == true) {
+        newTags.push(jQuery(this).val());
+      }
+    });
+	 if (newTags.length) {
+      var query = newTags.join('+');
+      window.location.href = jQuery('{{ 'tag' | link_to_tag: 'tag' }}').attr('href').replace('tag', query);
+    }
+    else {
+      {% if collection.handle %}
+      window.location.href = '/collections/{{ collection.handle }}';
+      {% elsif collection.products.first.type == collection.title %}
+      window.location.href = '{{ collection.title | url_for_type }}';
+      {% elsif collection.products.first.vendor == collection.title %}
+      window.location.href = '{{ collection.title | url_for_vendor }}';
+      {% endif %}
+    } 
+   
+  
+  }
+    var newTags = [];
+   collFilters_obj.change(function() {
+   //alert(jQuery(this).is(":checked"));
+   collFilters_obj.each(function() {
+      if (jQuery(this).val() && jQuery(this).is(":checked") == true) {
+        newTags.push(jQuery(this).val());
+      }
+    });
+	 if (newTags.length) {
+      var query = newTags.join('+');
+      window.location.href = jQuery('{{ 'tag' | link_to_tag: 'tag' }}').attr('href').replace('tag', query);
+    }
+    else {
+      {% if collection.handle %}
+	      window.location.href = '/collections/{{ collection.handle }}';
+      {% elsif collection.products.first.type == collection.title %}
+    	  window.location.href = '{{ collection.title | url_for_type }}';
+      {% elsif collection.products.first.vendor == collection.title %}
+      	  window.location.href = '{{ collection.title | url_for_vendor }}';
+      {% endif %}
+    }
+   });
+
+</script>
+{% endpaginate %}
+
+{% schema %}
+  {
+    "name": "Collection pages",
+ 	"max_blocks": 12,
+    "settings": [
+	 {
+        "type": "select",
+        "id": "sidebar_position",
+        "label": "Sidebar Position",
+        "default": "left",
+        "options": [
+          {
+            "value": "left",
+            "label": "Left"
+          },
+          {
+            "value": "right",
+            "label": "Right"
+          },
+		  {
+            "value": "nosidebar",
+            "label": "No Sidebar"
+          }
+        ]
+      },
+	 {
+        "type": "select",
+        "id": "page_style",
+        "label": "Page Style",
+        "default": "style1",
+        "options": [
+          {
+            "value": "style1",
+            "label": "Style 1"
+          },
+          {
+            "value": "style2",
+            "label": "Style 2"
+          }
+        ]		
+      }, 
+	  {
+		"type":"paragraph",
+		"content":"Style 1 : Upload top banner from admin > Products > Collections >Collection image"
+	  },
+	  {
+		"type":"header",
+		"content":"Style 2"
+	  },
+	  {
+		"type":"checkbox",
+		"id":"display_category_banner",
+		"label":"Display Slider",
+		"default":true
+	  },
+	  {
+        "type": "select",
+        "id": "slider_speed",
+        "label": "Slider Rotation Speed",
+        "default": "5000",
+        "options": [
+		  { "value": "4000", "label": "4 seconds" },
+          { "value": "5000", "label": "5 seconds" },
+          { "value": "6000", "label": "6 seconds" },
+          { "value": "7000", "label": "7 seconds" },
+          { "value": "8000", "label": "8 seconds" },
+          { "value": "9000", "label": "9 seconds" },
+          { "value": "10000", "label": "10 seconds" }
+        ]
+      },
+	  {
+		"type":"paragraph",
+		"content":"Scroll down to add slide images"
+	  },
+	  {
+		"type":"checkbox",
+		"id":"display_product_des",
+		"label":"Display Product Description",
+		"default":false
+	  },     
+      {
+        "type": "select",
+        "id": "grid",
+        "label": "Products per row (grid only)",
+        "default": "4",
+        "options": [          
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "rows",
+        "label": "Rows per page (grid only)",
+        "default": "2",
+        "options": [
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          },
+          {
+            "value": "8",
+            "label": "8"
+          }
+        ]
+      },      
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      },
+     {
+        "type": "checkbox",
+        "id": "show_product_review",
+        "label": "Show product Reviews",
+        "default": false
+      }  
+    ],
+    "blocks": [
+      {
+        "type": "slider_image",
+        "name": "Slider",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "slider_image",
+            "label": "Slide Image"            
+          },
+		{
+            "type": "text",
+            "id": "slider_image_url",
+            "label": "Slide Image Url"            
+          }  
+        ]
+      }
+    ]	
+  }
+{% endschema %} 
